@@ -40,6 +40,8 @@ exports.create = (service, path, method, data, callback) => {
         }
         buffer = new Buffer(data, 'utf8');
         reqOpts.headers['Content-Length'] = buffer.length;
+        reqOpts.headers['Content-Type'] = "application/json";
+        reqOpts.headers['Accept'] = "application/json";
     }
     let req = protocol.request(reqOpts, res => {
         let buffers = [];
@@ -56,7 +58,7 @@ exports.create = (service, path, method, data, callback) => {
                 let data;
                 try {
                     data = JSON.parse(Buffer.concat(buffers).toString());
-                } catch(e) {
+                } catch (e) {
                     log.debug('Unable to parse json response from server', e);
                     return callback("There was an error trying to parse a json response from the server.");
                 }
@@ -86,7 +88,7 @@ exports.create = (service, path, method, data, callback) => {
  * @returns {*}
  */
 exports.wait = (env, service, callback, timeout = 0) => {
-    if (service.cpuLimit>=100) {
+    if (service.cpuLimit >= 100) {
         return callback();
     }
     timeout = Math.min(timeout + 1, 30);

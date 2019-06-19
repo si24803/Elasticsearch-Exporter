@@ -24,7 +24,7 @@ function timestamp() {
 }
 
 exports.enabled = {
-    debug: false,
+    debug: true,
     info: true,
     timestamps: false
 };
@@ -102,7 +102,7 @@ exports.die = (status, message) => {
         throw new Error(message);
     }
     if (!message) {
-        switch(status) {
+        switch (status) {
             case 1: message = "No documents found to export"; break;
             case 2: message = "Uncaught Exception"; break;
             case 4: message = "driver is passing on an error"; break;

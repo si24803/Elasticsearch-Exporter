@@ -126,7 +126,7 @@ class Elasticsearch extends Driver {
         if (opts.source.query) {
             try {
                 opts.source.query = JSON.parse(opts.source.query);
-            } catch(e) {}
+            } catch (e) { }
         }
         if (opts.drivers.source == this.id && opts.drivers.target == this.id) {
             opts.target.host = opts.target.host || opts.source.host;
@@ -135,7 +135,7 @@ class Elasticsearch extends Driver {
             opts.target.type = opts.target.type || opts.source.type;
             opts.source.proxy = opts.source.proxy || process.env.HTTP_PROXY || process.env.http_proxy;
             if (opts.source.host != opts.target.host) { return callback(); }
-            if (opts.source.port != opts.target.port) { return callback();}
+            if (opts.source.port != opts.target.port) { return callback(); }
             if (opts.source.index != opts.target.index) { return callback(); }
             if (opts.source.type != opts.target.type && opts.source.index) { return callback(); }
         } else {
@@ -255,11 +255,11 @@ class Elasticsearch extends Driver {
                     uri += encodeURIComponent(env.options.source.index) + '/';
                 }
                 if (env.options.source.type) {
-                    uri += encodeURIComponent(env.options.source.type)+ '/';
+                    uri += encodeURIComponent(env.options.source.type) + '/';
                 }
-                request.source.get(env, uri + '_count', {query: env.options.source.query}, (err, data) => {
-                    if (err) {
-                        return subCallback(err);
+                request.source.get(env, uri + '_count', { query: env.options.source.query }, (err, data) => {
+                    if (err || !data.count) {
+                        return subCallback(err || data);
                     }
                     stats.docs.total = data.count;
                     subCallback();
@@ -303,7 +303,7 @@ class Elasticsearch extends Driver {
                         metadata.mappings[newIndex] = {};
                         for (let type in mappings) {
                             let newType = type;
-                            if (env.options.target.type&& env.options.target.type != env.options.source.type && type == env.options.source.type) {
+                            if (env.options.target.type && env.options.target.type != env.options.source.type && type == env.options.source.type) {
                                 newType = env.options.target.type;
                             }
                             metadata.mappings[newIndex][newType] = mappings[type];
@@ -337,7 +337,7 @@ class Elasticsearch extends Driver {
     putMeta(env, metadata, callback) {
         function createIndexTask(index) {
             return callback => {
-                let body = {settings: metadata.settings[index] ? metadata.settings[index] : {}};
+                let body = { settings: metadata.settings[index] ? metadata.settings[index] : {} };
                 if (env.options.target.replicas) {
                     body.settings.number_of_replicas = env.options.target.replicas;
                 }
@@ -358,7 +358,7 @@ class Elasticsearch extends Driver {
                 if (env.statistics.target.version.le(0.9)) {
                     uri = '/' + encodeURIComponent(index) + '/' + encodeURIComponent(type) + '/_mapping';
                 } else {
-                    uri = '/' + encodeURIComponent(index)+ '/_mapping/' + encodeURIComponent(type);
+                    uri = '/' + encodeURIComponent(index) + '/_mapping/' + encodeURIComponent(type);
                 }
                 let mapping = {};
                 mapping[type] = metadata.mappings[index][type];
@@ -400,23 +400,23 @@ class Elasticsearch extends Driver {
     }
 
     _getQuery(env) {
-        let fields = [ '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl' ];
+        let fields = ['_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'];
         let size = env.options.source.size;
         let query = env.options.source.query;
         if (env.options.source.index) {
             let indices = env.options.source.index.split(',');
-            let indexQuery = { indices: { indices, query, no_match_query: 'none' }};
+            let indexQuery = { indices: { indices, query, no_match_query: 'none' } };
             if (env.options.source.type) {
                 if (env.statistics.source.version.lt(2.0)) {
-                    return { fields, size, query: indexQuery, filter: { type: { value: env.options.source.type }} };
+                    return { fields, size, query: indexQuery, filter: { type: { value: env.options.source.type } } };
                 }
-                let payload = { fields, size, query: { bool: { must: [ indexQuery], should: [], minimum_should_match: 1}}};
+                let payload = { fields, size, query: { bool: { must: [indexQuery], should: [], minimum_should_match: 1 } } };
                 for (let type of env.options.source.type.split(',')) {
-                    payload.query.bool.should.push({ type: { value: type }});
+                    payload.query.bool.should.push({ type: { value: type } });
                 }
                 return payload;
             }
-            return { fields, size, query: indexQuery};
+            return { fields, size, query: indexQuery };
         }
         return { fields, size, query };
     }
